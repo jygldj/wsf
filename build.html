@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>道玄文集5.1 - 文章管理工具</title>
+    <style>
+        :root {
+            --rice: #FFFEFC;
+            --ink: #5A4A3F;
+            --bamboo: #3A6351;
+            --celadon: #E8F1F2;
+            --border: #D1D9D9;
+            --gold: #8B6914;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "楷体", "STKaiti", "KaiTi", serif;
+            background: var(--celadon);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: radial-gradient(ellipse at center, #E8F1F2 0%, #D5E3E0 100%);
+        }
+        .container {
+            background: var(--rice);
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            border: 1px solid var(--border);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: var(--bamboo);
+            font-size: 2em;
+            font-weight: normal;
+            letter-spacing: 4px;
+            margin-bottom: 6px;
+        }
+        .header .subtitle {
+            color: #7A8B7B;
+            font-size: 0.95em;
+            letter-spacing: 2px;
+        }
+        .step-card {
+            background: #FAFAF7;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+        .step-card:hover {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .step-num {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            background: var(--bamboo);
+            color: white;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        .step-title {
+            font-size: 1.1em;
+            color: var(--bamboo);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .step-desc {
+            color: #7A8B7B;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-left: 42px;
+        }
+        .file-input-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #FDFDFB;
+        }
+        .file-input-area:hover {
+            border-color: var(--bamboo);
+            background: #F8FAF8;
+        }
+        .file-input-area.drag-over {
+            border-color: var(--bamboo);
+            background: #EFF5F2;
+        }
+        .file-input-area input[type="file"] {
+            display: none;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-family: "楷体", "STKaiti", serif;
+            font-size: 1.05em;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+        }
+        .btn-primary {
+            background: var(--bamboo);
+            color: white;
+            box-shadow: 0 3px 10px rgba(58,99,81,0.3);
+        }
+        .btn-primary:hover {
+            background: #2E5040;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(58,99,81,0.4);
+        }
+        .btn-primary:disabled {
+            background: #A0B8A8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-outline {
+            background: white;
+            color: var(--bamboo);
+            border: 1px solid var(--bamboo);
+        }
+        .btn-outline:hover {
+            background: #F0F5F2;
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 16px;
+            font-size: 0.95em;
+            display: none;
+        }
+        .status.success {
+            display: block;
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #A5D6A7;
+        }
+        .status.error {
+            display: block;
+            background: #FFEBEE;
+            color: #C62828;
+            border: 1px solid #EF9A9A;
+        }
+        .status.info {
+            display: block;
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #90CAF9;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: #FDFDFB;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .stat-num {
+            font-size: 1.8em;
+            color: var(--bamboo);
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.85em;
+            color: #7A8B7B;
+            margin-top: 4px;
+        }
+        .tips {
+            background: #FFFDE7;
+            border: 1px solid #FFF9C4;
+            border-radius: 6px;
+            padding: 14px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #6D5E00;
+            line-height: 1.8;
+        }
+        .tips strong {
+            color: #8B6914;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #A8A59B;
+            font-size: 0.8em;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .header h1 { font-size: 1.5em; }
+            .stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-num { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📜 道玄文集 5.1</h1>
+            <div class="subtitle">文章数据生成工具</div>
+        </div>
+        <!-- 步骤说明 -->
+        <div class="step-card">
+            <span class="step-num">1</span>
+            <span class="step-title">选择 articles 文件夹</span>
+            <div class="step-desc">
+                点击下方区域，选择您电脑上的 <code>articles</code> 文件夹（里面存放所有 .md 文章文件）
+            </div>
+        </div>
+        <div class="file-input-area" id="dropZone" onclick="document.getElementById('folderInput').click()">
+            <div style="font-size:3em;">📁</div>
+            <div style="margin-top:8px;color:#7A8B7B;">点击此处选择 articles 文件夹</div>
+            <div style="font-size:0.8em;color:#A8A59B;">或拖拽文件夹到此处</div>
+            <input type="file" id="folderInput" webkitdirectory directory multiple>
+        </div>
+        <div class="step-card">
+            <span class="step-num">2</span>
+            <span class="step-title">扫描文章并生成数据</span>
+            <div class="step-desc">
+                点击下方按钮，自动扫描所有 .md 文件，生成 <code>articles1.js</code> 并自动下载
+            </div>
+        </div>
+        <!-- 统计面板 -->
+        <div class="stats" id="statsPanel" style="display:none;">
+            <div class="stat-item">
+                <div class="stat-num" id="statTotal">0</div>
+                <div class="stat-label">文章总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statPoem">0</div>
+                <div class="stat-label">诗/词</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statProse">0</div>
+                <div class="stat-label">散文/其他</div>
+            </div>
+        </div>
+        <!-- 按钮 -->
+        <div class="btn-row">
+            <button class="btn btn-primary" id="btnGenerate" disabled onclick="generateArticles()">
+                🔧 生成文章数据
+            </button>
+            <button class="btn btn-outline" id="btnPreview" disabled onclick="previewData()">
+                👁️ 预览数据
+            </button>
+        </div>
+        <!-- 状态提示 -->
+        <div class="status" id="statusMsg"></div>
+        <!-- 预览区域 -->
+        <div id="previewArea" style="display:none;margin-top:16px;max-height:300px;overflow-y:auto;background:#FDFDFB;border:1px solid var(--border);border-radius:6px;padding:16px;font-size:0.85em;white-space:pre-wrap;font-family:monospace;"></div>
+        <!-- 使用提示 -->
+        <div class="tips">
+            <strong>💡 使用提示：</strong><br>
+            ① 在 <code>articles</code> 文件夹中新建 .md 文件写文章<br>
+            ② 打开本工具 → 选择 articles 文件夹 → 点生成按钮<br>
+            ③ 自动下载 <code>articles1.js</code>，替换网站目录中的旧文件<br>
+            ④ 把新文件上传到 GitHub 即可更新网站 ✨
+        </div>
+        <div class="footer">
+            道玄文集5.1 · 网页版管理工具 · 无需安装任何软件
+        </div>
+    </div>
+    <script>
+        let scannedArticles = [];
+        let folderName = '';
+        // 文件夹选择
+        document.getElementById('folderInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            // 获取文件夹名
+            const path = files[0].webkitRelativePath;
+            folderName = path.split('/')[0];
+            
+            // 筛选 .md 文件
+            const mdFiles = files.filter(f => f.name.endsWith('.md'));
+            
+            if (mdFiles.length === 0) {
+                showStatus('error', '⚠️ 所选文件夹中没有找到 .md 文件，请确认选择了正确的 articles 文件夹。');
+                return;
+            }
+            
+            // 读取所有 .md 文件内容
+            scannedArticles = [];
+            let loaded = 0;
+            const total = mdFiles.length;
+            
+            showStatus('info', `📖 正在读取 ${total} 个文件...`);
+            
+            mdFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const content = ev.target.result;
+                    const article = parseMarkdown(file.name, content);
+                    if (article) {
+                        scannedArticles.push(article);
+                    }
+                    loaded++;
+                    if (loaded === total) {
+                        // 按文件名排序
+                        scannedArticles.sort((a, b) => a.filename.localeCompare(b.filename));
+                        onScanComplete();
+                    }
+                };
+                reader.readAsText(file);
+            });
+        });
+        // 拖拽支持
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', function() {
+            dropZone.classList.remove('drag-over');
+        });
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            // 注意：网页版拖拽文件夹需要特殊处理，此处引导用户使用点击方式
+            showStatus('info', '💡 请点击上方区域选择文件夹（拖拽文件夹支持因浏览器而异）');
+        });
+        function parseMarkdown(filename, content) {
+            const lines = content.trim().split('\n');
+            let title = '';
+            let category = '未分类';
+            let dateStr = '';
+            let bodyLines = [];
+            let headerDone = false;
+            for (const line of lines) {
+                const s = line.trim();
+                if (s.startsWith('# ') && !title) {
+                    title = s.substring(2).trim();
+                    continue;
+                }
+                if (s.startsWith('> ') && !headerDone) {
+                    const meta = s.substring(2).trim();
+                    const parts = meta.replace('｜', '|').split('|');
+                    if (parts.length >= 2) {
+                        category = parts[0].trim();
+                        dateStr = parts[1].trim();
+                    } else if (parts.length === 1) {
+                        category = parts[0].trim();
+                    }
+                    headerDone = true;
+                    continue;
+                }
+                if (!headerDone && !s) continue;
+                if (title) {
+                    headerDone = true;
+                    bodyLines.push(s);
+                }
+            }
+            if (!title) return null;
+            return {
+                filename: filename,
+                title: title,
+                category: category,
+                date: dateStr,
+                body: bodyLines.join('\n').trim()
+            };
+        }
+        function onScanComplete() {
+            const count = scannedArticles.length;
+            document.getElementById('btnGenerate').disabled = false;
+            document.getElementById('btnPreview').disabled = false;
+            
+            // 更新统计
+            document.getElementById('statsPanel').style.display = 'grid';
+            document.getElementById('statTotal').textContent = count;
+            
+            const poems = scannedArticles.filter(a => 
+                a.category.includes('诗') || a.category.includes('词')
+            ).length;
+            const proses = count - poems;
+            document.getElementById('statPoem').textContent = poems;
+            document.getElementById('statProse').textContent = proses;
+            
+            showStatus('success', `✅ 扫描完成！共发现 <strong>${count}</strong> 篇文章（诗/词 ${poems} 篇，散文/其他 ${proses} 篇）`);
+        }
+        function generateArticles() {
+            if (scannedArticles.length === 0) {
+                showStatus('error', '❌ 请先选择 articles 文件夹！');
+                return;
+            }
+            
+            const separator = '─'.repeat(22);
+            const articleTexts = scannedArticles.map(a => 
+                `${a.title}\n${a.category}｜${a.date}\n\n${a.body}`
+            );
+            const allText = articleTexts.join(`\n${separator}\n`);
+            const jsContent = `const articlesData = \`${allText}\`;\n`;
+            
+            // 自动下载
+            const blob = new Blob(['\uFEFF' + jsContent], { type: 'application/javascript;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'articles1.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('success', `🎉 生成成功！<strong>articles1.js</strong> 已开始下载（${scannedArticles.length} 篇文章）<br>请将下载的文件替换网站目录中的旧文件。`);
+        }
+        function previewData() {
+            if (scannedArticles.length === 0) {
+                showStatus('error', '❌ 请先选择 articles 文件夹！');
+                return;
+            }
+            
+            const previewArea = document.getElementById('previewArea');
+            previewArea.style.display = 'block';
+            
+            let preview = `📋 文章列表预览（共 ${scannedArticles.length} 篇）\n`;
+            preview += '═'.repeat(50) + '\n\n';
+            
+            scannedArticles.forEach((a, i) => {
+                preview += `[${i+1}] ${a.title}\n`;
+                preview += `    类型: ${a.category} | 日期: ${a.date}\n`;
+                preview += `    正文预览: ${a.body.substring(0, 80)}...\n\n`;
+            });
+            
+            previewArea.textContent = preview;
+            previewArea.scrollTop = 0;
+        }
+        function showStatus(type, message) {
+            const el = document.getElementById('statusMsg');
+            el.className = 'status ' + type;
+            el.innerHTML = message;
+        }
+    </script>
+</body>
+</html>
