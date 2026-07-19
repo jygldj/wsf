@@ -25,6 +25,30 @@
             border: 1px solid var(--border);
             max-width: 750px; width: 100%; padding: 40px;
         }
+        
+        /* 修改：返回扉页按钮样式（移入容器内） */
+        .back-home-link {
+            text-align: right; /* 靠右对齐 */
+            margin-bottom: 15px; /* 与下方标题保持距离 */
+        }
+        .back-home-link .btn {
+            padding: 6px 14px;
+            font-size: 0.85em;
+            background: var(--bamboo);
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(58,99,81,0.2);
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-home-link .btn:hover {
+            background: #2E5040;
+            transform: translateY(-1px);
+        }
+
         .header {
             text-align: center; margin-bottom: 30px;
             border-bottom: 2px solid var(--border); padding-bottom: 20px;
@@ -110,6 +134,11 @@
 </head>
 <body>
     <div class="container">
+        <!-- 修改：将按钮移入容器内部，放在标题上方 -->
+        <div class="back-home-link">
+            <a href="index.html" class="btn">🏠 返回扉页</a>
+        </div>
+
         <div class="header">
             <h1>📜 道玄文集 5.1</h1>
             <div class="subtitle">文章数据生成工具 · 无需安装任何软件</div>
@@ -118,9 +147,7 @@
         <div class="step-card">
             <span class="step-num">1</span>
             <span class="step-title">选择 articles 文件夹</span>
-            <div class="step-desc">
-                点击下方区域，选择您电脑上的 <code>articles</code> 文件夹
-            </div>
+            <div class="step-desc">点击下方区域，选择您电脑上的 <code>articles</code> 文件夹</div>
         </div>
         <div class="file-input-area" id="dropZone" onclick="document.getElementById('folderInput').click()">
             <div style="font-size:3em;">📁</div>
@@ -132,9 +159,7 @@
         <div class="step-card">
             <span class="step-num">2</span>
             <span class="step-title">生成并保存 articles1.js</span>
-            <div class="step-desc">
-                点击生成按钮 → 浏览器会弹出<strong>保存对话框</strong> → 请选择保存到 <code>build.html</code> 所在的文件夹（即网站根目录），替换旧的 <code>articles1.js</code>
-            </div>
+            <div class="step-desc">点击生成按钮 → 浏览器会弹出<strong>保存对话框</strong> → 请选择保存到 <code>build.html</code> 所在的文件夹（即网站根目录），替换旧的 <code>articles1.js</code></div>
         </div>
         <!-- 统计面板 -->
         <div class="stats" id="statsPanel" style="display:none;">
@@ -153,12 +178,8 @@
         </div>
         <!-- 按钮 -->
         <div class="btn-row">
-            <button class="btn btn-primary" id="btnGenerate" disabled onclick="generateAndDownload()">
-                📥 生成并下载 articles1.js
-            </button>
-            <button class="btn btn-outline" id="btnPreview" disabled onclick="previewData()">
-                👁️ 预览文章列表
-            </button>
+            <button class="btn btn-primary" id="btnGenerate" disabled onclick="generateAndDownload()">📥 生成并下载 articles1.js</button>
+            <button class="btn btn-outline" id="btnPreview" disabled onclick="previewData()">👁️ 预览文章列表</button>
         </div>
         <!-- 状态提示 -->
         <div class="status" id="statusMsg"></div>
@@ -166,10 +187,7 @@
         <div class="highlight-box" id="successBox">
             <div class="big-icon">✅</div>
             <div class="msg"><strong>articles1.js</strong> 已开始下载！</div>
-            <div style="color:#666;font-size:0.9em;">
-                📍 请在保存对话框中，选择 <strong>build.html 所在文件夹</strong>（网站根目录）<br>
-                ⚠️ 选择"替换"旧文件即可完成更新
-            </div>
+            <div style="color:#666;font-size:0.9em;">📍 请在保存对话框中，选择 <strong>build.html 所在文件夹</strong>（网站根目录）<br>⚠️ 选择"替换"旧文件即可完成更新</div>
         </div>
         <!-- 预览区域 -->
         <div id="previewArea" style="display:none;margin-top:16px;max-height:300px;overflow-y:auto;background:#FDFDFB;border:1px solid var(--border);border-radius:6px;padding:16px;font-size:0.85em;white-space:pre-wrap;font-family:monospace;"></div>
@@ -182,10 +200,9 @@
             ④ 保存对话框中选择网站根目录 → 替换旧的 <code>articles1.js</code><br>
             ⑤ 把新的 <code>articles1.js</code> 上传到 GitHub → 网站更新完成 ✨
         </div>
-        <div class="footer">
-            道玄文集5.1 · 网页版管理工具 · 无需安装 Python 或任何软件
-        </div>
+        <div class="footer">道玄文集5.1 · 网页版管理工具 · 无需安装 Python 或任何软件</div>
     </div>
+
     <script>
         let scannedArticles = [];
         document.getElementById('folderInput').addEventListener('change', function(e) {
@@ -214,6 +231,7 @@
                 reader.readAsText(file);
             });
         });
+
         function parseMarkdown(filename, content) {
             const lines = content.trim().split('\n');
             let title = '', category = '未分类', dateStr = '', bodyLines = [], headerDone = false;
@@ -233,6 +251,7 @@
             if (!title) return null;
             return { filename, title, category, date: dateStr, body: bodyLines.join('\n').trim() };
         }
+
         function onScanComplete() {
             const count = scannedArticles.length;
             document.getElementById('btnGenerate').disabled = false;
@@ -245,6 +264,7 @@
             document.getElementById('successBox').style.display = 'none';
             showStatus('success', `✅ 扫描完成！共 <strong>${count}</strong> 篇文章（诗/词 ${poems} 篇，散文/其他 ${count-poems} 篇）`);
         }
+
         function generateAndDownload() {
             if (scannedArticles.length === 0) {
                 showStatus('error', '❌ 请先选择 articles 文件夹！');
@@ -256,7 +276,6 @@
             );
             const allText = articleTexts.join(`\n${separator}\n`);
             const jsContent = `const articlesData = \`${allText}\`;\n`;
-            // 触发下载 - 浏览器会弹出保存对话框
             const blob = new Blob(['\uFEFF' + jsContent], { type: 'application/javascript;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -266,10 +285,10 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            // 显示成功提示
             document.getElementById('successBox').style.display = 'block';
             showStatus('success', `🎉 生成成功！共 <strong>${scannedArticles.length}</strong> 篇文章<br>请在保存对话框中选择网站根目录，替换旧的 articles1.js`);
         }
+
         function previewData() {
             if (scannedArticles.length === 0) {
                 showStatus('error', '❌ 请先选择 articles 文件夹！');
@@ -287,6 +306,7 @@
             previewArea.textContent = preview;
             previewArea.scrollTop = 0;
         }
+
         function showStatus(type, message) {
             const el = document.getElementById('statusMsg');
             el.className = 'status ' + type;
