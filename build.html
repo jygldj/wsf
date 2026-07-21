@@ -25,11 +25,9 @@
             border: 1px solid var(--border);
             max-width: 750px; width: 100%; padding: 40px;
         }
-        
-        /* 修改：返回扉页按钮样式（移入容器内） */
         .back-home-link {
-            text-align: right; /* 靠右对齐 */
-            margin-bottom: 15px; /* 与下方标题保持距离 */
+            text-align: right;
+            margin-bottom: 15px;
         }
         .back-home-link .btn {
             padding: 6px 14px;
@@ -48,7 +46,6 @@
             background: #2E5040;
             transform: translateY(-1px);
         }
-
         .header {
             text-align: center; margin-bottom: 30px;
             border-bottom: 2px solid var(--border); padding-bottom: 20px;
@@ -134,16 +131,14 @@
 </head>
 <body>
     <div class="container">
-        <!-- 修改：将按钮移入容器内部，放在标题上方 -->
         <div class="back-home-link">
             <a href="index.html" class="btn">🏠 返回扉页</a>
         </div>
 
         <div class="header">
             <h1>📜 道玄文集 5.1</h1>
-            <div class="subtitle">文章数据生成工具 · 无需安装任何软件</div>
+            <div class="subtitle">智能文章打包工具 · 自动识别散文/诗词/注释</div>
         </div>
-        <!-- 步骤1 -->
         <div class="step-card">
             <span class="step-num">1</span>
             <span class="step-title">选择 articles 文件夹</span>
@@ -155,13 +150,11 @@
             <div style="font-size:0.8em;color:#A8A59B;">选中文件夹后自动扫描所有 .md 文件</div>
             <input type="file" id="folderInput" webkitdirectory directory multiple>
         </div>
-        <!-- 步骤2 -->
         <div class="step-card">
             <span class="step-num">2</span>
             <span class="step-title">生成并保存 articles1.js</span>
             <div class="step-desc">点击生成按钮 → 浏览器会弹出<strong>保存对话框</strong> → 请选择保存到 <code>build.html</code> 所在的文件夹（即网站根目录），替换旧的 <code>articles1.js</code></div>
         </div>
-        <!-- 统计面板 -->
         <div class="stats" id="statsPanel" style="display:none;">
             <div class="stat-item">
                 <div class="stat-num" id="statTotal">0</div>
@@ -176,31 +169,25 @@
                 <div class="stat-label">📖 散文/其他</div>
             </div>
         </div>
-        <!-- 按钮 -->
         <div class="btn-row">
             <button class="btn btn-primary" id="btnGenerate" disabled onclick="generateAndDownload()">📥 生成并下载 articles1.js</button>
             <button class="btn btn-outline" id="btnPreview" disabled onclick="previewData()">👁️ 预览文章列表</button>
         </div>
-        <!-- 状态提示 -->
         <div class="status" id="statusMsg"></div>
-        <!-- 下载成功提示 -->
         <div class="highlight-box" id="successBox">
             <div class="big-icon">✅</div>
             <div class="msg"><strong>articles1.js</strong> 已开始下载！</div>
             <div style="color:#666;font-size:0.9em;">📍 请在保存对话框中，选择 <strong>build.html 所在文件夹</strong>（网站根目录）<br>⚠️ 选择"替换"旧文件即可完成更新</div>
         </div>
-        <!-- 预览区域 -->
         <div id="previewArea" style="display:none;margin-top:16px;max-height:300px;overflow-y:auto;background:#FDFDFB;border:1px solid var(--border);border-radius:6px;padding:16px;font-size:0.85em;white-space:pre-wrap;font-family:monospace;"></div>
-        <!-- 使用提示 -->
         <div class="tips">
-            <strong>💡 完整工作流程：</strong><br>
-            ① 用记事本写文章 → 另存为 <code>.md</code> 文件（UTF-8编码）<br>
-            ② 把 <code>.md</code> 文件放入 <code>articles</code> 文件夹<br>
-            ③ 打开本工具 → 选择 articles 文件夹 → 点生成按钮<br>
-            ④ 保存对话框中选择网站根目录 → 替换旧的 <code>articles1.js</code><br>
-            ⑤ 把新的 <code>articles1.js</code> 上传到 GitHub → 网站更新完成 ✨
+            <strong>💡 智能识别规则：</strong><br>
+            📝 散文段落 → 自动首行缩进<br>
+            📜 诗句（连续短句）→ 自动居中，无缩进<br>
+            📌 注：/注释：→ 自动变为棕色注释块<br>
+            ## 和 ### → 自动转为二级/三级标题
         </div>
-        <div class="footer">道玄文集5.1 · 网页版管理工具 · 无需安装 Python 或任何软件</div>
+        <div class="footer">道玄文集5.1 · 智能打包工具 · 无需安装任何软件</div>
     </div>
 
     <script>
@@ -232,52 +219,160 @@
             });
         });
 
-function parseMarkdown(filename, content) {
-    const lines = content.trim().split('\n');
-    let title = '', category = '未分类', dateStr = '', bodyLines = [], headerDone = false;
-    for (const line of lines) {
-        const s = line.trim();
-        // 提取一级标题 (# )
-        if (s.startsWith('# ') && !title) {
-            title = s.substring(2).trim();
-            continue;
-        }
-        // 提取元数据 (> )
-        if (s.startsWith('> ') && !headerDone) {
-            const meta = s.substring(2).trim();
-            const parts = meta.replace('｜', '|').split('|');
-            if (parts.length >= 2) {
-                category = parts[0].trim();
-                dateStr = parts[1].trim();
-            } else if (parts.length === 1) {
-                category = parts[0].trim();
+        // ============================================================
+        // 核心：智能解析 .md 文件（识别散文/诗词/注释）
+        // ============================================================
+        function parseMarkdown(filename, content) {
+            const lines = content.trim().split('\n');
+            let title = '', category = '未分类', dateStr = '', bodyLines = [], headerDone = false;
+
+            // 状态标记
+            let inAnnotation = false;
+            let annotationContent = [];
+            let poemBuffer = [];
+            let proseBuffer = [];
+
+            // 判断是否为诗句（短句，有标点）
+            function isPoemLine(line) {
+                const trimmed = line.trim();
+                if (!trimmed) return false;
+                // 长度小于25字，且以常见标点结尾
+                const punc = /[，。！？、；：,\.!\?;:、…—]$/;
+                return trimmed.length < 25 && punc.test(trimmed);
             }
-            headerDone = true;
-            continue;
-        }
-        // 跳过一级标题和元数据之间的空行
-        if (!headerDone && !s) continue;
-        if (title) {
-            headerDone = true;
-            // =====================================================
-            // 修改点：识别二级标题 (##) 和三级标题 (###)
-            // =====================================================
-            if (s.startsWith('## ') || s.startsWith('### ')) {
-                // 将二级/三级标题转换为 HTML 标签
-                if (s.startsWith('## ')) {
-                    bodyLines.push(`<h2>${s.substring(3).trim()}</h2>`);
-                } else if (s.startsWith('### ')) {
-                    bodyLines.push(`<h3>${s.substring(4).trim()}</h3>`);
+
+            // 将缓冲区内容写入 bodyLines
+            function flushBuffers() {
+                if (poemBuffer.length > 0) {
+                    bodyLines.push('<div class="poem">');
+                    poemBuffer.forEach(line => {
+                        bodyLines.push(`<p>${line.trim()}</p>`);
+                    });
+                    bodyLines.push('</div>');
+                    poemBuffer = [];
                 }
-            } else {
-                // 普通正文行
-                bodyLines.push(s);
+                if (proseBuffer.length > 0) {
+                    proseBuffer.forEach(line => {
+                        bodyLines.push(`<p class="paragraph-indent">${line.trim()}</p>`);
+                    });
+                    proseBuffer = [];
+                }
             }
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const s = line.trim();
+
+                // 1. 提取一级标题
+                if (s.startsWith('# ') && !title) {
+                    title = s.substring(2).trim();
+                    continue;
+                }
+                // 2. 提取元数据
+                if (s.startsWith('> ') && !headerDone) {
+                    const meta = s.substring(2).trim();
+                    const parts = meta.replace('｜', '|').split('|');
+                    if (parts.length >= 2) {
+                        category = parts[0].trim();
+                        dateStr = parts[1].trim();
+                    } else if (parts.length === 1) {
+                        category = parts[0].trim();
+                    }
+                    headerDone = true;
+                    continue;
+                }
+                // 跳过标题和元数据之间的空行
+                if (!headerDone && !s) continue;
+                if (title) {
+                    headerDone = true;
+
+                    // 3. 检测注释块开始 (注：/注释：/附：/附记：/附注：)
+                    if (!inAnnotation && /^(注|注释|附|附记|附注)[：:]\s*/.test(s)) {
+                        flushBuffers(); // 清空之前的缓冲区
+                        inAnnotation = true;
+                        // 提取注释内容（去掉前缀）
+                        const notePrefix = s.match(/^(注|注释|附|附记|附注)[：:]\s*/);
+                        if (notePrefix) {
+                            annotationContent.push(s.replace(notePrefix[0], ''));
+                        } else {
+                            annotationContent.push(s);
+                        }
+                        continue;
+                    }
+
+                    // 如果在注释块中
+                    if (inAnnotation) {
+                        // 如果遇到空行，结束注释块
+                        if (!s) {
+                            // 将注释内容打包
+                            if (annotationContent.length > 0) {
+                                bodyLines.push('<div class="annotation">');
+                                annotationContent.forEach(note => {
+                                    bodyLines.push(`<p>${note}</p>`);
+                                });
+                                bodyLines.push('</div>');
+                                annotationContent = [];
+                            }
+                            inAnnotation = false;
+                            continue;
+                        }
+                        // 继续收集注释内容
+                        annotationContent.push(s);
+                        continue;
+                    }
+
+                    // 4. 检测二级/三级标题
+                    if (s.startsWith('## ')) {
+                        flushBuffers();
+                        bodyLines.push(`<h2>${s.substring(3).trim()}</h2>`);
+                        continue;
+                    }
+                    if (s.startsWith('### ')) {
+                        flushBuffers();
+                        bodyLines.push(`<h3>${s.substring(4).trim()}</h3>`);
+                        continue;
+                    }
+
+                    // 5. 处理正文：判断是诗句还是散文
+                    if (s) {
+                        if (isPoemLine(s)) {
+                            // 如果有积存的散文，先输出
+                            if (proseBuffer.length > 0) {
+                                flushBuffers();
+                            }
+                            poemBuffer.push(s);
+                        } else {
+                            // 如果有积存的诗词，先输出
+                            if (poemBuffer.length > 0) {
+                                flushBuffers();
+                            }
+                            proseBuffer.push(s);
+                        }
+                    } else {
+                        // 空行：清空缓冲区
+                        flushBuffers();
+                    }
+                }
+            }
+
+            // 处理结束时残留的缓冲区
+            flushBuffers();
+            if (annotationContent.length > 0) {
+                bodyLines.push('<div class="annotation">');
+                annotationContent.forEach(note => {
+                    bodyLines.push(`<p>${note}</p>`);
+                });
+                bodyLines.push('</div>');
+                annotationContent = [];
+            }
+
+            if (!title) return null;
+            return {
+                filename, title, category, date: dateStr,
+                body: bodyLines.join('\n').trim()
+            };
         }
-    }
-    if (!title) return null;
-    return { filename, title, category, date: dateStr, body: bodyLines.join('\n').trim() };
-}
+
         function onScanComplete() {
             const count = scannedArticles.length;
             document.getElementById('btnGenerate').disabled = false;
