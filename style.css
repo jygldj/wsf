@@ -580,6 +580,22 @@ font-size: 12px;
     display: none;
 }
 /* ===== 文章导航（默认隐藏，JS控制显示） ===== */
+/* ===== 为 wsf 项目增加的多级标题样式 ===== */
+h2 {
+    font-size: 1.5em;
+    margin: 1.2em 0 0.5em 0;
+    color: #3A6351;
+    border-bottom: 1px solid #D1D9D9;
+    padding-bottom: 0.3em;
+    font-weight: normal;
+}
+
+h3 {
+    font-size: 1.2em;
+    margin: 1em 0 0.3em 0;
+    color: #4A7B6B;
+    font-weight: normal;
+}
 .article-nav {
     display: none;
 }
