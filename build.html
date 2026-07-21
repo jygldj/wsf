@@ -232,26 +232,52 @@
             });
         });
 
-        function parseMarkdown(filename, content) {
-            const lines = content.trim().split('\n');
-            let title = '', category = '未分类', dateStr = '', bodyLines = [], headerDone = false;
-            for (const line of lines) {
-                const s = line.trim();
-                if (s.startsWith('# ') && !title) { title = s.substring(2).trim(); continue; }
-                if (s.startsWith('> ') && !headerDone) {
-                    const meta = s.substring(2).trim();
-                    const parts = meta.replace('｜', '|').split('|');
-                    if (parts.length >= 2) { category = parts[0].trim(); dateStr = parts[1].trim(); }
-                    else if (parts.length === 1) { category = parts[0].trim(); }
-                    headerDone = true; continue;
-                }
-                if (!headerDone && !s) continue;
-                if (title) { headerDone = true; bodyLines.push(s); }
-            }
-            if (!title) return null;
-            return { filename, title, category, date: dateStr, body: bodyLines.join('\n').trim() };
+function parseMarkdown(filename, content) {
+    const lines = content.trim().split('\n');
+    let title = '', category = '未分类', dateStr = '', bodyLines = [], headerDone = false;
+    for (const line of lines) {
+        const s = line.trim();
+        // 提取一级标题 (# )
+        if (s.startsWith('# ') && !title) {
+            title = s.substring(2).trim();
+            continue;
         }
-
+        // 提取元数据 (> )
+        if (s.startsWith('> ') && !headerDone) {
+            const meta = s.substring(2).trim();
+            const parts = meta.replace('｜', '|').split('|');
+            if (parts.length >= 2) {
+                category = parts[0].trim();
+                dateStr = parts[1].trim();
+            } else if (parts.length === 1) {
+                category = parts[0].trim();
+            }
+            headerDone = true;
+            continue;
+        }
+        // 跳过一级标题和元数据之间的空行
+        if (!headerDone && !s) continue;
+        if (title) {
+            headerDone = true;
+            // =====================================================
+            // 修改点：识别二级标题 (##) 和三级标题 (###)
+            // =====================================================
+            if (s.startsWith('## ') || s.startsWith('### ')) {
+                // 将二级/三级标题转换为 HTML 标签
+                if (s.startsWith('## ')) {
+                    bodyLines.push(`<h2>${s.substring(3).trim()}</h2>`);
+                } else if (s.startsWith('### ')) {
+                    bodyLines.push(`<h3>${s.substring(4).trim()}</h3>`);
+                }
+            } else {
+                // 普通正文行
+                bodyLines.push(s);
+            }
+        }
+    }
+    if (!title) return null;
+    return { filename, title, category, date: dateStr, body: bodyLines.join('\n').trim() };
+}
         function onScanComplete() {
             const count = scannedArticles.length;
             document.getElementById('btnGenerate').disabled = false;
