@@ -583,9 +583,10 @@ font-size: 12px;
 /* ===== 为 wsf 项目增加的多级标题样式 ===== */
 h2 {
     font-size: 1.3em;
-    margin: 0.5em 0 0.2em 0;
+    margin: 0.2em 0 0.1em 0;    /* 上下边距极小 */
+    padding-bottom: 0;           /* 去掉底部内边距 */
+    line-height: 1.3;            /* 强行收紧行高 */
     color: #3A6351;
-    padding-bottom: 0.3em;
     font-weight: normal;
 }
 
